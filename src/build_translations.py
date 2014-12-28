@@ -113,6 +113,13 @@ for lang in LANGUAGES:
     if lang in BLACKLIST: continue
     print lang
 
+    if lang == 'ar':
+        direction = 'rtl-math'
+    elif lang in ['fa', 'he']:
+        direction = 'rtl'
+    else:
+        direction = 'ltr'
+
     blocks = parse_po(fetch_po(lang, "scratch1.4"))
     blocks.update(parse_po(fetch_po(lang, "blocks")))
     blocks = minify_blocks(blocks) 
@@ -176,6 +183,7 @@ for lang in LANGUAGES:
 
     language = {
         'code': lang,
+        'direction': direction,
         'aliases': extra_aliases,
         'define': [blocks.get('define', '')],
         'ignorelt': [when_distance],
