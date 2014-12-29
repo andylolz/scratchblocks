@@ -164,6 +164,7 @@ var scratchblocks2 = function ($) {
         ignorelt: [],
         math: [],
         osis: [],
+        direction: '',
     };
 
     var languages = sb2.languages = {};
@@ -175,6 +176,7 @@ var scratchblocks2 = function ($) {
 
     var english = {
         code: "en",
+        direction: "ltr",
 
         aliases: {
             "turn left _ degrees": "turn @arrow-ccw _ degrees",
@@ -614,6 +616,9 @@ var scratchblocks2 = function ($) {
                 }
             }
         }
+
+        // add writing direction to strings
+        strings.direction = language.direction;
 
         languages[iso_code] = language;
     }
@@ -1382,6 +1387,9 @@ var scratchblocks2 = function ($) {
             $el.text("");
             $el.append($container);
             $container.addClass("sb2");
+            if (strings.direction == 'rtl') {
+                $container.addClass("rtl");
+            }
             if (options.inline) {
                 $container.addClass("inline-block");
             }
