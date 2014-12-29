@@ -1172,6 +1172,9 @@
   width: 32px;
   background: #ffff80;
 }
+.sb2.rtl {
+  direction: rtl;
+}
 .sb2.inline-block {
   display: inline-block;
   vertical-align: middle;
