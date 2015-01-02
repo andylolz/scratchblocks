@@ -261,6 +261,7 @@ var current_id,
   sprites,
   fetching = false,
   scripts_by_id,
+  oldHash = '',
   chosen_scripts;
 
 function asset_url (md5) {
@@ -376,7 +377,11 @@ function show_sprite (i) {
   var name = sprite.objName;
 
   selected_sprite = i;
-  location.hash = "#project="+current_id; //+"&sprite="+i
+  var hash = "#project=" + current_id; //+"&sprite="+i
+  if (choose_lang.value != "en") {
+    hash += "&lang=" + encodeURIComponent(choose_lang.value);
+  }
+  location.hash = hash;
 
   // select list item
   $("#sprites-list .selected").removeClass("selected");
@@ -476,7 +481,11 @@ function init_fetch () {
 
   var id = id_from_url($("#project-url").attr("value"));
   if (id) {
-    location.hash = "#project="+id;
+    var hash = "#project=" + id;
+    if (choose_lang.value != "en") {
+      hash += "&lang=" + encodeURIComponent(choose_lang.value);
+    }
+    location.hash = hash;
     fetch(id);
   } else {
     $("#status").text("Invalid URL");
@@ -486,29 +495,37 @@ function init_fetch () {
 }
 
 function check_hash() {
-  if (fetching) return;
+  if (!fetching && oldHash != location.hash) {
+    oldHash = location.hash;
+    var hash = location.href.split("#")[1] || "";
 
-  var hash = decodeURIComponent((location.href.split("#")[1] || ""));
-
-  var result = /url=([^&]*)/.exec(hash);
-  if (result) {
-    $("#project-url").attr("value", decodeURIComponent(result[1]));
-    init_fetch();
-    return;
-  }
-
-  var result = /project=([0-9]+)/.exec(hash);
-  if (result) {
-    if (result[1] != current_id) {
-      fetch(result[1]);
-    }
-  }
-
-  var result = /sprite=([0-9]+)/.exec(hash);
-  if (result) {
-    if (result[1] != selected_sprite) {
-      show_sprite(result[1]);
-    }
+    parts = hash.split("&");
+    parts.forEach(function(part) {
+      var match = /^(.*)=(.*)$/.exec(part);
+      if (!match) return;
+      var key = decodeURIComponent(match[1]);
+      var value = decodeURIComponent(match[2]);
+      switch (key) {
+        case "lang":
+          choose_lang.value = value;
+          choose_lang.onchange();
+          break;
+        case "url":
+          $("#project-url").attr("value", value);
+          init_fetch();
+          break;
+        case "project":
+          if (/^[0-9]+$/.test(value) && value != current_id) {
+            fetch(value);
+          }
+          break;
+        case "sprite":
+          if (/^[0-9]+$/.test(value) && value != selected_sprite) {
+            show_sprite(value);
+          }
+          break;
+      }
+    });
   }
 
   window.setTimeout(check_hash, 500);
@@ -530,8 +547,9 @@ function update_edit_link() {
 $(document).ready(function () {
   choose_lang = document.getElementById("choose-lang");
   choose_lang.onchange = function (e) {
-    chosen_scripts_or_lang_updated();
-
+    if (chosen_scripts) {
+      chosen_scripts_or_lang_updated();
+    }
     var lang = choose_lang.value;
     var lang_dict = scratchblocks2._translations[lang];
     if (lang_dict) {
