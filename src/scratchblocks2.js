@@ -665,11 +665,12 @@ var scratchblocks2 = function ($) {
             var lang_and_id = block_by_text[minitext];
             var blockid = lang_and_id.blockid;
             var info = clone(block_info_by_id[blockid]);
-            if (info.image_replacement) {
-                info.spec = languages[lang_and_id.lang].blocks[blockid];
-            } else {
-                if (spec === "..." || spec === "…") spec = ". . .";
+
+            if (spec === "..." || spec === "…") {
+                spec = ". . .";
                 info.spec = spec;
+            } else {
+                info.spec = languages[lang_and_id.lang].blocks[blockid];
             }
             if (info.hack) info.hack(info, args);
             return info;
@@ -709,6 +710,7 @@ var scratchblocks2 = function ($) {
 
     function minify(text) {
         var minitext = text.replace(/[.,%?:▶◀▸◂]/g, "").toLowerCase()
+                           .replace(/\$\d+/g, "_")
                            .replace(/[ \t]+/g, " ").trim();
         if (window.diacritics_removal_map) {
             minitext = remove_diacritics(minitext);
@@ -720,7 +722,7 @@ var scratchblocks2 = function ($) {
     // Insert padding around arguments in spec
 
     function normalize_spec(spec) {
-        return spec.replace(/([^ ])_/g, "$1 _").replace(/_([^ ])/g, "_ $1");
+        return spec.replace(/([^ ])(_|\$\d+)/g, "$1 $2").replace(/(_|\$\d+)([^ ])/g, "$1 $2");
     }
 
     /*** Parse block ***/
@@ -934,11 +936,16 @@ var scratchblocks2 = function ($) {
         // rebuild pieces (in case text has changed) and parse arguments
         var pieces = [];
         var text_parts = info.spec.split((info.blockid === "_ + _")
-                                         ? /([_@▶◀▸◂])/ : /([_@▶◀▸◂+])/);
+                                         ? /([\$\d+|_@▶◀▸◂])/ : /(\$\d+|[_@▶◀▸◂+])/);
         for (var i=0; i<text_parts.length; i++) {
             var part = text_parts[i];
-            if (part === "_") {
-                var arg = args.shift();
+            var match = /\$(\d+)/.exec(part);
+            var arg;
+            if (match) {
+                arg = args[match[1]];
+                part = parse_block(arg, context);
+            } else if (part === "_") {
+                arg = args.shift();
                 if (arg === undefined) {
                     part = "_";
                     /* If there are no args left, then the underscore must
