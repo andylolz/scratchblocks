@@ -303,6 +303,7 @@ var gen = function () {
 
         var translated_block = translations.blocks[min_block];
         var args = block_text.match(/(%.(?:\.[A-z]+)?)/g);
+        translated_block = translated_block.replace(/\$(\d+)/g, function(_, ind) { return args[ind]; });
         return translated_block.replace(/_/g, function() { return args.shift(); });
     }
 
@@ -365,7 +366,7 @@ var gen = function () {
             out = "\n    ";
         } else {
             $.each(blocks, function (i, block) {
-                var lines = render_block(block).split("\n"); 
+                var lines = render_block(block).split("\n");
                 for (i=0; i<lines.length; i++) {
                     out += "\n";
                     out += "    "+lines[i];
@@ -374,7 +375,7 @@ var gen = function () {
         }
         return out;
     }
-   
+
     function render_block (block) {
         var out = "",
             command,
@@ -410,14 +411,14 @@ var gen = function () {
             default:
                 command = commands[block[0]],
                 args = block.slice(1);
-                
+
                 if (!command) {
                     return "**"+JSON.stringify(block)+"**";
                 }
 
                 break;
         }
-        
+
         if (!command.parts) {
             command.parts = parse_block_parts(command.text);
         }
@@ -495,7 +496,7 @@ var gen = function () {
     gen.generate = function (script) {
         return render_script(script);
     }
-    
+
 
     // DEBUG
     gen.render_block = render_block;
