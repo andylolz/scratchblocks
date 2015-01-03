@@ -32,7 +32,7 @@ FORUM_LANGS = ['de', 'es', 'fr', 'zh_CN', 'pl', 'ja', 'nl' , 'pt', 'it',
 #LANGUAGES = ALL_LANGS
 LANGUAGES = FORUM_LANGS
 
-INSERT_RE = re.compile(r'(%.(?:\.[A-z]+)?)')
+INSERT_RE = re.compile(r'(%[A-Za-z](?:\.[A-Za-z]+)?)')
 PICTURE_RE = re.compile(r'@[A-Za-z-]+')
 JUNK_RE = re.compile(r'[ \t,\%?:]')
 
@@ -41,16 +41,38 @@ def minify(spec):
     #spec = JUNK_RE.sub("", spec)
     return spec
 
-def minify_blockspec(spec):
-    spec = INSERT_RE.sub("_", spec)
+def minify_blockspec(spec, repl="_"):
+    spec = INSERT_RE.sub(repl, spec)
     spec = PICTURE_RE.sub("@", spec)
     return minify(spec)
+
+def check_block_order(block, result):
+    block_order = INSERT_RE.findall(block)
+    result_order = INSERT_RE.findall(result)
+    if block_order == result_order:
+        # the order matches
+        return None
+    if (len(block_order) != len(result_order)):
+        # something wrong with the translation
+        return None
+    ref = [i for x in result_order for i, y in enumerate(block_order) if x == y]
+    if len(ref) < len(result_order):
+        # something wrong with the translation
+        return None
+    return ref
 
 def minify_blocks(blocks):
     mini_blocks = {}
     for block, result in blocks.items():
-        assert "_" not in block
-        mini_blocks[minify_blockspec(block)] = minify_blockspec(result)
+        assert "_" not in block # and "_" not in result
+        assert "$" not in block and "$" not in result
+        block_order = check_block_order(block, result)
+        if block_order is None:
+            mini_result = minify_blockspec(result)
+        else:
+            repl = lambda x: "$%s" % block_order.pop(0)
+            mini_result = minify_blockspec(result, repl)
+        mini_blocks[minify_blockspec(block)] = mini_result
     return mini_blocks
 
 def parse_po(content):
