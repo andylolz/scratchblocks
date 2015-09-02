@@ -174,10 +174,13 @@ for lang in LANGUAGES:
     ])
     palette['Tips'] = editor.get('Tips')
 
+    dropdowns = [blocks.get(x) or editor.get(x, x) for x in ["A connected", "all", "all around", "all motors", "B connected", "brightness", "button pressed", "C connected", "color", "costume name", "D connected", "date", "day of week", "don't rotate", "down arrow", "edge", "everything", "fisheye", "ghost", "hour", "left arrow", "left-right", "light", "lights", "minute", "month", "mosaic", "motion", "motor", "motor A", "motor B", "mouse-pointer", "myself", "not =", "off", "on", "on-flipped", "other scripts in sprite", "pixelate", "previous backdrop", "resistance-A", "resistance-B", "resistance-C", "resistance-D", "reverse", "right arrow", "second", "slider", "sound", "space", "Stage", "that way", "this script", "this sprite", "this way", "up arrow", "video motion", "whirl", "year"]]
+
     language = {
         'code': lang,
         'aliases': extra_aliases,
         'define': [blocks.get('define', '')],
+        'dropdowns': dropdowns,
         'ignorelt': [when_distance],
         'math': map(editor.get, ["abs", "floor", "ceiling", "sqrt", "sin", 
                                  "cos", "tan", "asin", "acos", "atan", "ln",
